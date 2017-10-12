@@ -1,0 +1,6 @@
+rest:
+  image: jboss/wildfly
+  volumes:
+    - ./target:/opt/jboss/wildfly/standalone/deployments
+  ports:
+    - 18080:8080
