@@ -5,7 +5,9 @@
  */
 package superbrain.webservices;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceContextType;
@@ -19,6 +21,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PUT;
 import javax.ws.rs.core.MediaType;
+import superbrain.webservices.managers.TestManager;
 import superbrain.webservices.models.Test;
 
 /**
@@ -32,8 +35,8 @@ public class TestService {
     @Context
     private UriInfo context;
     
-    @PersistenceContext(unitName = "superbrain-dev", type = PersistenceContextType.EXTENDED)
-    EntityManager em;
+    @Inject
+    private TestManager testManager;
 
     /**
      * Creates a new instance of TestService
@@ -65,7 +68,7 @@ public class TestService {
     @Produces(MediaType.TEXT_HTML)
     @Transactional
     public String getFromDb() {
-        Test test = em.find(Test.class, 1L);
+        Test test = testManager.getTest(1L);
         return test.toString();
     }
 
@@ -80,10 +83,16 @@ public class TestService {
     
     @POST
     @Consumes(MediaType.TEXT_HTML)
+    @Produces(MediaType.APPLICATION_JSON)
     @Transactional
-    public void postJson() {
+    public String postJson() {
         Test test = new Test();
         test.setText("Text_" + System.currentTimeMillis());
-        em.persist(test);
+        test = testManager.createTest(test);
+        Gson gson = new Gson();
+        JsonObject json = new JsonObject();
+        json.addProperty("message", "Test created!");
+        json.addProperty("data", gson.toJson(test));
+        return json.toString();
     }
 }
